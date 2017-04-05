@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.data.repository.query.spi.EvaluationContextExtensionSupport;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +15,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -27,7 +28,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-    auth.userDetailsService(userService);
+    auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
+  }
+  
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder(10);
   }
 
   @Override
@@ -39,17 +45,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http
         .authorizeRequests()
-          .anyRequest().hasRole("USER")
-          .and()              // Login form configuration
+            .anyRequest().hasRole("USER")
+            .and()              // Login form configuration
         .formLogin()
-          .loginPage("/login")
-          .permitAll()
-          .successHandler(loginSuccessHandler())   // Configure success and failure handler methods
-          .failureHandler(loginFailureHandler())
-          .and()
+            .loginPage("/login")
+            .permitAll()
+            .successHandler(loginSuccessHandler())   // Configure success and failure handler methods
+            .failureHandler(loginFailureHandler())
+            .and()
         .logout()
-          .permitAll()
-          .logoutSuccessUrl("/login");
+            .permitAll()
+            .logoutSuccessUrl("/login")
+            .and()
+        .csrf();
   }
 
   // AuthenticationSuccessHandler ist ein Interface und hat nur eine Methode
