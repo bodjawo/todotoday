@@ -22,9 +22,14 @@ public class User implements UserDetails{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
+  
+  public Long getId() {
+    return id;
+  }
+  
   @Column(unique = true)
   @Size(min = 5, max = 20)
+  
   private String username;
 
   @Column(length = 100)
